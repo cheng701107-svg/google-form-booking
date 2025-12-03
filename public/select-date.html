@@ -1,310 +1,145 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>選擇入住日期</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-
 <style>
-  body {
-    font-family: "Noto Sans TC", sans-serif;
-    margin: 0;
-    background: #f8f8f8;
-  }
-
-  .container {
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
-  }
-
-  h2 {
-    font-size: 22px;
-    margin-bottom: 14px;
-  }
-
-  /* Month Header */
-  .month-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 12px 0;
-    padding: 6px 0;
-  }
-
-  .month-btn {
-    background: #1976d2;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    font-size: 15px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-
-  .calendar {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-
-  .week-row, .date-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    margin-bottom: 8px;
-  }
-
-  .week-row div {
-    font-weight: 600;
-    color: #555;
-    padding: 6px 0;
-  }
-
-  .date-cell {
-    padding: 12px 0;
-    border-radius: 10px;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .date-cell:hover {
-    background: #e3f2fd;
-  }
-
-  .disabled {
-    color: #aaa;
-    background: #f0f0f0 !important;
-    cursor: not-allowed;
-  }
-
-  .today {
-    background: #e8f4ff;
-    border: 2px solid #1976d2;
-  }
-
-  .special-dot {
-    width: 8px;
-    height: 8px;
-    background: #ff9800;
-    border-radius: 50%;
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .next-btn {
-    margin-top: 20px;
-    width: 100%;
-    padding: 14px;
-    font-size: 18px;
-    background: #1976d2;
-    color: white;
-    border-radius: 10px;
-    border: none;
-    display: none;
-    cursor: pointer;
-  }
-
+body { font-family: "Noto Sans TC", sans-serif; padding: 20px; }
+.calendar { max-width: 500px; margin: auto; }
+.date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.date-cell { padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; }
+.date-cell:hover { background: #e8f3ff; }
+.selected { background: #1a73e8; color: white !important; }
+.disabled { color: #ccc; pointer-events: none; }
+button { margin-top: 20px; width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 18px; }
 </style>
-</head>
 
-<body>
-<div class="container">
-  <h2 id="roomTitle">選擇入住日期</h2>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
 
-  <div class="month-bar">
-    <button class="month-btn" onclick="changeMonth(-1)">‹ 上個月</button>
-    <div id="monthTitle"></div>
-    <button class="month-btn" onclick="changeMonth(1)">下個月 ›</button>
-  </div>
-
-  <div class="calendar">
-    <div class="week-row">
-      <div>日</div><div>一</div><div>二</div><div>三</div>
-      <div>四</div><div>五</div><div>六</div>
-    </div>
-
-    <div id="dates"></div>
-  </div>
-
-  <button class="next-btn" id="nextBtn" onclick="goNext()">下一步</button>
-</div>
-
-<script type="module">
-
-/* ------------------------------------------------
-    Firebase 初始化
------------------------------------------------- */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore, doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+<script>
 const firebaseConfig = {
-  apiKey: "AIzaSyCnytMF9E5kgjadIe8EpKYoWCqsAVR93I0",
+  apiKey: "AIzaSyCnytMF9E5kgjadIe8EpKYoWCqsAVR9310",
   authDomain: "form-booking-8fb46.firebaseapp.com",
   projectId: "form-booking-8fb46",
   storageBucket: "form-booking-8fb46.appspot.com",
   messagingSenderId: "866268132852",
-  appId: "1:866268132852:web:566f1fe2d79cacabd6b5a1",
-  measurementId: "G-J1RNH6VBTG"
+  appId: "1:866268132852:web:566f1fe2d79cacabd6b5a1"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
 
-/* ------------------------------------------------
-    全域變數
------------------------------------------------- */
-const params = new URLSearchParams(location.search);
-const roomId = params.get("roomId");
+</head>
+<body>
 
-let roomData = null;
+<h2>選擇入住日期</h2>
+
+<div class="calendar">
+  <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+    <button onclick="changeMonth(-1)">‹ 上個月</button>
+    <div id="monthTitle"></div>
+    <button onclick="changeMonth(1)">下個月 ›</button>
+  </div>
+
+  <div class="date-grid" id="weekHeader">
+    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+  </div>
+
+  <div class="date-grid" id="dates"></div>
+
+  <button onclick="goNext()">下一步</button>
+</div>
+
+<script>
+let params = new URLSearchParams(location.search);
+let roomId = params.get("roomId");
+
 let selectedDate = null;
+let roomData = null;
 
-let displayMonth = new Date();
+// 初始顯示今日月份
+let now = new Date();
+let displayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-/* ------------------------------------------------
-    初始載入房型資料
------------------------------------------------- */
+// 載入房型資料
 async function loadRoom() {
-  const ref = doc(db, "rooms", roomId);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    alert("查無房型");
-    return;
+  try {
+    const docSnap = await db.collection("rooms").doc(roomId).get();
+    if (!docSnap.exists) {
+      alert("找不到房型資料！");
+      return;
+    }
+    roomData = docSnap.data();
+    renderCalendar();
+  } catch(e) {
+    alert("無法載入房型資料");
   }
-
-  roomData = snap.data();
-
-  document.getElementById("roomTitle").innerText =
-    `選擇入住日期（${roomData.title}）`;
-
-  renderCalendar();
 }
-
 loadRoom();
 
-/* ------------------------------------------------
-    渲染月曆
------------------------------------------------- */
+// 渲染日曆
 function renderCalendar() {
-  if (!roomData) return;
-
   const year = displayMonth.getFullYear();
   const month = displayMonth.getMonth();
 
-  document.getElementById("monthTitle").innerText = `${year} 年 ${month + 1} 月`;
+  document.getElementById("monthTitle").innerText = `${year} 年 ${month+1} 月`;
 
-  const container = document.getElementById("dates");
-  container.innerHTML = "";
+  const datesContainer = document.getElementById("dates");
+  datesContainer.innerHTML = "";
 
   const firstDay = new Date(year, month, 1).getDay();
-  const totalDays = new Date(year, month + 1, 0).getDate();
-  
-  let row = document.createElement("div");
-  row.className = "date-row";
+  const totalDays = new Date(year, month+1, 0).getDate();
 
-  // 前面空格
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement("div");
-    empty.className = "date-cell";
-    row.appendChild(empty);
+  // 填空白
+  for (let i=0; i<firstDay; i++) {
+    let empty = document.createElement("div");
+    datesContainer.appendChild(empty);
   }
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  const disabled = roomData.disabledDates || [];
-  const closed = roomData.closedDates || [];
-  const sp = roomData.specialPrice || {};
-
-  for (let d = 1; d <= totalDays; d++) {
-    if (row.children.length === 7) {
-      container.appendChild(row);
-      row = document.createElement("div");
-      row.className = "date-row";
-    }
-
-    const cell = document.createElement("div");
+  for (let d=1; d<=totalDays; d++) {
+    let cell = document.createElement("div");
     cell.className = "date-cell";
     cell.innerText = d;
 
-    const dateObj = new Date(year, month, d);
-    const dateStr = dateObj.toISOString().split("T")[0];
+    let dateObj = new Date(year, month, d);
+    let dateStr = dateObj.toISOString().split("T")[0];
 
-    /* ---- 不可選條件 ---- */
-    let isDisabled = false;
-
-    if (dateObj < today) isDisabled = true;
-    if (disabled.includes(dateStr)) isDisabled = true;
-    if (closed.includes(dateStr)) isDisabled = true;
-
-    if (isDisabled) {
+    // 過去禁用
+    let today = new Date();
+    if (dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
       cell.classList.add("disabled");
-    } else {
-      cell.onclick = () => selectDate(dateObj, dateStr);
     }
 
-    /* ---- 顯示今日 ---- */
-    if (dateObj.getTime() === today.getTime()) {
-      cell.classList.add("today");
-    }
+    // 選取功能
+    cell.onclick = function() {
+      selectedDate = dateStr;
+      document.querySelectorAll(".date-cell").forEach(c=>c.classList.remove("selected"));
+      this.classList.add("selected");
+    };
 
-    /* ---- 特殊價格小點 ---- */
-    if (sp[dateStr]) {
-      const dot = document.createElement("div");
-      dot.className = "special-dot";
-      cell.appendChild(dot);
-    }
-
-    row.appendChild(cell);
+    datesContainer.appendChild(cell);
   }
-
-  container.appendChild(row);
 }
 
-/* ------------------------------------------------
-    切換月份
------------------------------------------------- */
 function changeMonth(delta) {
   displayMonth.setMonth(displayMonth.getMonth() + delta);
   renderCalendar();
 }
 
-/* ------------------------------------------------
-    選擇日期
------------------------------------------------- */
-function selectDate(dateObj, dateStr) {
-  selectedDate = dateStr;
-
-  document.querySelectorAll(".date-cell").forEach(c => {
-    c.style.background = "";
-  });
-
-  event.target.style.background = "#bbdefb";
-
-  document.getElementById("nextBtn").style.display = "block";
-}
-
-/* ------------------------------------------------
-    下一步 → 選擇入住天數
------------------------------------------------- */
+// ⭐⭐ 最重要：goNext() 需存在 ⭐⭐
 function goNext() {
-  if (!selectedDate) return;
+  if (!selectedDate) {
+    alert("請選擇入住日期");
+    return;
+  }
 
+  // 前往選晚數
   location.href = `select-nights.html?roomId=${roomId}&date=${selectedDate}`;
 }
-
-window.changeMonth = changeMonth;
-
 </script>
 
 </body>
