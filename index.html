@@ -2,178 +2,122 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<title>LINE 預約訂位</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>選擇房型</title>
+<link rel="stylesheet" href="assets/style.css">
 
-<!-- LIFF -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Noto Sans TC", sans-serif;
+    background: #f5f5f5;
+  }
 
-<!-- flatpickr -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 16px;
+  }
 
-<link rel="stylesheet" href="style.css">
+  .title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .room-card {
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    cursor: pointer;
+    border: 1px solid #e6e6e6;
+    transition: 0.15s;
+  }
+
+  .room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.08);
+  }
+
+  .room-image {
+    width: 110px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #ddd;
+  }
+
+  .room-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .room-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .room-price {
+    font-size: 15px;
+    color: #1a73e8;
+    font-weight: 600;
+  }
+
+  .room-nights {
+    font-size: 14px;
+    color: #777;
+    margin-top: 6px;
+  }
+</style>
+
 </head>
 
 <body>
-
 <div class="container">
+  <div class="title">選擇預約房型</div>
 
-  <h2>請填寫預約資訊</h2>
-
-  <form id="liffForm">
-
-    <!-- 隱藏資料 -->
-    <input type="hidden" id="line_uid">
-    <input type="hidden" id="line_email">
-
-    <!-- 姓名 -->
-    <div class="field-group">
-      <label>姓名 <span class="label-required">*</span></label>
-      <input type="text" id="name" required placeholder="請輸入姓名">
-    </div>
-
-    <!-- 手機 -->
-    <div class="field-group">
-      <label>手機號碼 <span class="label-required">*</span></label>
-      <input type="tel" id="phone" required maxlength="10"
-             placeholder="0912345678" pattern="09[0-9]{8}" inputmode="numeric">
-    </div>
-
-    <!-- 預約日期 -->
-    <div class="field-group date-group">
-      <label>預約日期 <span class="label-required">*</span></label>
-      <input type="text" id="date" required placeholder="請選擇日期" readonly>
-      <span class="date-icon">📅</span>
-      <div class="hint">營業日：週六/週日與國定假日</div>
-    </div>
-
-    <!-- 預約時段 -->
-    <div class="field-group">
-      <label>預約時段 <span class="label-required">*</span></label>
-      <select id="time" required>
-        <option value="" disabled selected>請選擇</option>
-        <option>11:30</option>
-        <option>13:30</option>
-        <option>15:30</option>
-      </select>
-    </div>
-
-    <!-- 大人 -->
-    <div class="field-group">
-      <label>大人人數 <span class="label-required">*</span></label>
-      <select id="adult" required>
-        <option value="" disabled selected>請選擇</option>
-        <script>
-          document.write(
-            Array.from({length: 30}, (_, i) => i + 1)
-            .map(n => `<option value="${n}">${n} 位</option>`)
-            .join("")
-          );
-        </script>
-      </select>
-    </div>
-
-    <!-- 小孩 -->
-    <div class="field-group">
-      <label>小孩人數</label>
-      <select id="child">
-        <option value="0" selected>0 位</option>
-        <script>
-          document.write(
-            Array.from({length: 10}, (_, i) => i + 1)
-            .map(n => `<option value="${n}">${n} 位</option>`)
-            .join("")
-          );
-        </script>
-      </select>
-    </div>
-
-    <!-- 兒童椅 -->
-    <div class="field-group">
-      <label>兒童坐椅</label>
-      <select id="chair">
-        <option value="0" selected>0 張</option>
-        <script>
-          document.write(
-            Array.from({length: 5}, (_, i) => i + 1)
-            .map(n => `<option value="${n}">${n} 張</option>`)
-            .join("")
-          );
-        </script>
-      </select>
-    </div>
-
-    <!-- 備註 -->
-    <div class="field-group">
-      <label>備註</label>
-      <textarea id="note" rows="3" placeholder="可填寫特殊需求…"></textarea>
-    </div>
-
-    <button type="submit">送出預約</button>
-  </form>
+  <div id="roomList"></div>
 </div>
 
-
 <script>
-/* -------------------------
-   初始化 LIFF
--------------------------- */
-async function initLIFF() {
-  await liff.init({ liffId: "2008586106-kLrdO1gp" });
+async function loadRooms() {
+  const res = await fetch("data/rooms.json");
+  const rooms = await res.json();
 
-  if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: location.href });
-    return;
-  }
+  const list = document.getElementById("roomList");
 
-  const profile = await liff.getProfile();
-  const token = liff.getDecodedIDToken();
+  rooms.forEach(room => {
+    const card = document.createElement("div");
+    card.className = "room-card";
 
-  document.getElementById("line_uid").value = profile.userId;
-  document.getElementById("line_email").value = token?.email || "";
+    card.onclick = () => {
+      // 導向下一頁（選日期）
+      window.location.href = `select-date.html?roomId=${room.id}`;
+    };
 
-  // ⭐ 修正：index 沒有 displayName → 防錯處理
-  const d = document.getElementById("displayName");
-  if (d) d.innerText = profile.displayName;
-}
+    card.innerHTML = `
+      <img src="${room.image}" class="room-image">
+      <div class="room-info">
+        <div>
+          <div class="room-title">${room.title}</div>
+          <div class="room-price">$${room.price.toLocaleString()} / 每晚</div>
+        </div>
+        <div class="room-nights">可住：${room.minNights} - ${room.maxNights} 晚</div>
+      </div>
+    `;
 
-/* -------------------------
-   日期選擇器
--------------------------- */
-function initDatePicker() {
-  flatpickr("#date", {
-    locale: "zh_tw",
-    dateFormat: "Y-m-d",
-    minDate: new Date().fp_incr(1) // ⭐ 今天不可選
+    list.appendChild(card);
   });
 }
 
-/* -------------------------
-   DOM Ready
--------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
-  initLIFF();
-  initDatePicker();
-});
-
-/* -------------------------
-   表單送出
--------------------------- */
-document.getElementById("liffForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const params = new URLSearchParams();
-
-  ["line_uid","line_email","name","phone","date","time","adult","child","chair","note"]
-    .forEach(id => {
-      const key = id.replace("line_", "");
-      params.append(key, document.getElementById(id).value);
-    });
-
-  location.href = "resultSend.html?" + params.toString();
-});
+loadRooms();
 </script>
 
 </body>
