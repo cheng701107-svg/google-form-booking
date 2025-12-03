@@ -2,27 +2,21 @@
   {
     "id": "A",
     "title": "A館包棟",
-    "subtitle": "熱門包棟房型",
-    "weekday": 21000,
-    "weekend": 24000,
+    "price": 21000,
     "minNights": 1,
     "maxNights": 3,
-    "maxGuests": 12,
     "image": "images/a-house.jpg",
-    "disabledDates": [],
-    "specialPrice": {}
+    "description": "A館包棟，適合家庭與團體入住，提供舒適的大空間與完善設施。",
+    "maxGuests": 12
   },
   {
     "id": "B",
     "title": "B館包棟",
-    "subtitle": "庭院大空間",
-    "weekday": 23000,
-    "weekend": 26000,
+    "price": 23000,
     "minNights": 1,
     "maxNights": 3,
-    "maxGuests": 16,
     "image": "images/b-house.jpg",
-    "disabledDates": [],
-    "specialPrice": {}
+    "description": "B館包棟，擁有獨立庭院、烤肉區，適合派對與多人團聚。",
+    "maxGuests": 16
   }
 ]
