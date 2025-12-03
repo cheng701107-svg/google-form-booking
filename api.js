@@ -16,12 +16,21 @@ const API_BASE = "https://script.google.com/macros/s/AKfycbycn4YMzYNHhukCPKr-Nt-
    ⭐ STEP 2：統一 GET 請求
    --------------------------------------------------------- */
 async function apiGet(path) {
-  const res = await fetch(API_BASE + path, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" }
+  return new Promise((resolve, reject) => {
+    const callback = "cb" + Date.now();
+    window[callback] = data => {
+      delete window[callback];
+      resolve(data);
+    };
+
+    const script = document.createElement("script");
+    script.src = `${API_BASE}${path}&callback=${callback}`;
+    script.onerror = reject;
+
+    document.body.appendChild(script);
   });
-  return res.json();
 }
+
 
 async function apiPost(path, data = {}) {
   const res = await fetch(API_BASE + path, {
