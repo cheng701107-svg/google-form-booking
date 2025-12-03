@@ -1,114 +1,56 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
 <title>選擇住宿房型</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body {
-    font-family: "Noto Sans TC", sans-serif;
-    background: #fafafa;
-    padding: 20px;
-  }
-
-  h2 {
-    font-size: 22px;
-    margin-bottom: 20px;
-  }
-
+  body { font-family: sans-serif; padding: 20px; }
   .room-card {
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    display: flex;
-    gap: 15px;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    transition: 0.2s;
-  }
-
-  .room-card:hover {
-    transform: scale(1.01);
-  }
-
-  .room-img {
-    width: 120px;
-    height: 90px;
-    object-fit: cover;
+    padding: 16px;
+    margin-bottom: 12px;
     border-radius: 10px;
+    background: #f2f6ff;
+    cursor: pointer;
   }
-
-  .room-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .room-subtitle {
-    font-size: 14px;
-    color: #666;
-  }
-
-  .room-price {
-    margin-top: 8px;
-    font-size: 16px;
-    color: #0b8a27;
-    font-weight: 700;
-  }
-
-  .room-nights {
-    font-size: 13px;
-    color: #888;
-  }
+  .title { font-size: 20px; font-weight: bold; }
+  .subtitle { font-size: 14px; color: #666; }
 </style>
 </head>
 
 <body>
 
 <h2>選擇住宿房型</h2>
-
-<div id="roomList"></div>
+<div id="roomList">讀取中…</div>
 
 <script>
+const API = "你的 GAS Web App URL";
+
 async function loadRooms() {
-  try {
-    const res = await fetch("data/rooms.json");
-    const rooms = await res.json();
+  const res = await fetch(API + "?action=rooms");
+  const json = await res.json();
 
-    const list = document.getElementById("roomList");
-
-    rooms.forEach(room => {
-      const card = document.createElement("div");
-      card.className = "room-card";
-
-      // 主要價格：平日價格 priceWeekday
-      const mainPrice = room.priceWeekday ?? room.priceWeekend ?? 0;
-
-      card.onclick = () => {
-        window.location.href = `select-date.html?roomId=${room.id}`;
-      };
-
-      card.innerHTML = `
-        <img src="${room.image}" class="room-img">
-
-        <div style="flex:1">
-          <div class="room-title">${room.title}</div>
-          <div class="room-subtitle">${room.subtitle ?? ''}</div>
-
-          <div class="room-price">$${Number(mainPrice).toLocaleString()} 起</div>
-          <div class="room-nights">可入住：${room.minNights}-${room.maxNights} 晚</div>
-        </div>
-      `;
-
-      list.appendChild(card);
-    });
-  } catch (err) {
-    console.error("載入 rooms.json 失敗", err);
-    document.getElementById("roomList").innerHTML =
-      "<p>無法載入房型資料。</p>";
+  if (!json.success) {
+    document.getElementById("roomList").innerHTML = "無法載入房型資料";
+    return;
   }
+
+  const list = document.getElementById("roomList");
+  list.innerHTML = "";
+
+  json.rooms.forEach(r => {
+    const div = document.createElement("div");
+    div.className = "room-card";
+    div.onclick = () => {
+      window.location.href = "select-date.html?roomId=" + r.id;
+    };
+    div.innerHTML = `
+      <div class="title">${r.title}</div>
+      <div class="subtitle">${r.subtitle}</div>
+    `;
+    list.appendChild(div);
+  });
 }
 
 loadRooms();
