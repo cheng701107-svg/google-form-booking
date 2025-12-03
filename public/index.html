@@ -113,6 +113,9 @@ async function loadRooms() {
       window.location.href = `select-date.html?roomId=${room.id}`;
     };
 
+    // 使用平日價格作為起價
+    const price = room.weekdayPrice.toLocaleString();
+
     card.innerHTML = `
       <img src="${room.image}" class="room-img">
 
@@ -123,7 +126,7 @@ async function loadRooms() {
         </div>
 
         <div>
-          <div class="room-price">$${room.basePrice.toLocaleString()} / 每晚</div>
+          <div class="room-price">$${price} 起</div>
           <div class="room-nights">可入住：${room.minNights}-${room.maxNights} 晚</div>
         </div>
       </div>
@@ -135,6 +138,7 @@ async function loadRooms() {
 
 loadRooms();
 </script>
+
 
 </body>
 </html>
