@@ -2,27 +2,18 @@
   {
     "id": "A",
     "title": "A館包棟",
-    "subtitle": "最多 12 人 · 3 間臥室 · 烤肉區 · 客廳",
-    "basePrice": 21000,
+    "subtitle": "最多 12 人 · 3 間臥室 · 烤肉區",
+    "weekdayPrice": 21000,
+    "weekendPrice": 25000,
     "minNights": 1,
     "maxNights": 3,
     "maxGuests": 12,
     "image": "images/a-house.jpg",
-    "description": "A館包棟，適合家庭與團體入住，提供完整廚房、KTV、烤肉區。",
     "disabledDates": [],
-    "specialPrice": {}
-  },
-  {
-    "id": "B",
-    "title": "B館包棟",
-    "subtitle": "最多 16 人 · 4 間臥室 · 草地庭院 · 烤肉區",
-    "basePrice": 23000,
-    "minNights": 1,
-    "maxNights": 3,
-    "maxGuests": 16,
-    "image": "images/b-house.jpg",
-    "description": "B館包棟，擁有超大草地庭院、獨立庭園、烤肉區，適合大型家庭與聚會。",
-    "disabledDates": [],
-    "specialPrice": {}
+    "specialPrice": {
+      "2025-12-31": 35000,
+      "2025-01-01": 30000
+    }
   }
 ]
+
