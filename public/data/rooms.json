@@ -1,58 +1,28 @@
 [
   {
-    "id": "A01",
+    "id": "A",
     "title": "A館包棟",
-    "description": "包棟空間，含客廳、廚房、烤肉區，適合家庭與團體入住。",
-    "image": "images/a-house.jpg",
-
-    /* ---------- 可訂日期管理 ---------- */
-    "disabledDates": [
-      "2025-02-10",
-      "2025-02-11"
-    ],
-    "closedDates": [
-      "2025-03-01",
-      "2025-03-02"
-    ],
-    "specialPrice": {
-      "2025-02-14": 28000,
-      "2025-02-15": 30000,
-      "2025-12-31": 45000
-    },
-
-    /* ---------- 價格規則 ---------- */
-    "priceWeekday": 21000,
-    "priceWeekend": 25000,
+    "subtitle": "熱門包棟房型",
+    "weekday": 21000,
+    "weekend": 24000,
     "minNights": 1,
     "maxNights": 3,
-
-    /* ---------- 人數規則 ---------- */
     "maxGuests": 12,
-    "standardGuests": 8,
-    "extraAdultPrice": 500,
-    "extraChildPrice": 300
-  },
-
-  {
-    "id": "B01",
-    "title": "B館包棟",
-    "description": "擁有獨立庭院、烤肉區，空間加大，適合大型家族與團體。",
-    "image": "images/b-house.jpg",
-
+    "image": "images/a-house.jpg",
     "disabledDates": [],
-    "closedDates": [],
-    "specialPrice": {
-      "2025-02-14": 32000
-    },
-
-    "priceWeekday": 23000,
-    "priceWeekend": 26000,
+    "specialPrice": {}
+  },
+  {
+    "id": "B",
+    "title": "B館包棟",
+    "subtitle": "庭院大空間",
+    "weekday": 23000,
+    "weekend": 26000,
     "minNights": 1,
     "maxNights": 3,
-
     "maxGuests": 16,
-    "standardGuests": 10,
-    "extraAdultPrice": 500,
-    "extraChildPrice": 300
+    "image": "images/b-house.jpg",
+    "disabledDates": [],
+    "specialPrice": {}
   }
 ]
