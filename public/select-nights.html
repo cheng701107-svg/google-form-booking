@@ -1,113 +1,181 @@
-<!--（前略 – 保留你原本的 HTML / 樣式）-->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>選擇入住天數</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  /* 新增每日明細表格 */
-  .price-detail-box {
-    margin-top: 15px;
+  body { font-family: "Noto Sans TC"; padding: 20px; }
+  h2 { margin-bottom: 15px; }
+
+  .container { margin-top: 20px; }
+
+  .night-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 14px;
-    border-radius: 12px;
-    background: #f9fafc;
-    border: 1px solid #e0e0e0;
+    background: #f7f7f7;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
   }
-  .price-detail-item {
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #444;
+
+  .night-row:hover { background: #ececec; }
+
+  .price { font-weight: bold; color: #008800; }
+
+  .btn {
+    width: 100%;
+    margin-top: 20px;
+    background: #007bff;
+    color: white;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
   }
-  .price-detail-bold {
-    font-weight: 700;
-    color: #222;
-  }
+
+  .btn:active { opacity: 0.8; }
+
 </style>
+</head>
+<body>
+
+<h2 id="title">選擇入住天數</h2>
+<div id="nightContainer" class="container"></div>
+
+<div class="btn" id="nextBtn">下一步</div>
 
 <script>
-// ---- 修改：讀取 disabledDates（被訂走） & specialPrice ----
-async function loadRoom() {
-  const res = await fetch("data/rooms.json");
-  const rooms = await res.json();
+/* -------------------------------------------------------
+   取得網址參數
+------------------------------------------------------- */
+const params = new URLSearchParams(location.search);
+const roomId = params.get("roomId");
+const startDate = params.get("date");
 
-  roomData = rooms.find(r => r.id === roomId);
+/* -------------------------------------------------------
+   全域變數
+------------------------------------------------------- */
+let room = null;
+let selectedNights = null;
 
-  disabledDates = roomData.disabledDates || [];
-  specialPrice = roomData.specialPrice || {};
+/* -------------------------------------------------------
+   讀取房型資料
+------------------------------------------------------- */
+async function loadRoomData() {
+  try {
+    const res = await fetch("data/rooms.json");
+    const rooms = await res.json();
 
-  document.getElementById("roomTitle").innerText =
-    `${roomData.title} · 平日 $${roomData.weekdayPrice.toLocaleString()} · 假日 $${roomData.weekendPrice.toLocaleString()}`;
+    room = rooms.find(r => r.id === roomId);
 
-  renderNightButtons();
-}
+    if (!room) {
+      alert("找不到房型資料");
+      return;
+    }
 
-// ---- 新增：價格類型文字
-function getPriceLabel(date, room) {
-  const dateStr = date.toISOString().split("T")[0];
+    document.getElementById("title").innerText =
+      `選擇入住天數（${room.title}）`;
 
-  if (room.specialPrice && room.specialPrice[dateStr]) {
-    return "(特殊日)";
+    renderNightOptions();
+
+  } catch (err) {
+    console.error("讀取房型資料失敗:", err);
+    alert("系統錯誤，無法載入房型資料（rooms.json）。");
   }
-
-  const day = date.getDay(); // 0=日、6=六
-  if (day === 0 || day === 6) return "(假日)";
-  return "(平日)";
 }
 
-// ---- 已整合：每日價格明細
-function getDailyPriceDetails(room, checkin, nights) {
-  const detailArr = [];
-  let d = new Date(checkin);
+/* -------------------------------------------------------
+   依據房型可住天數產生選項
+------------------------------------------------------- */
+function renderNightOptions() {
+  const container = document.getElementById("nightContainer");
+  container.innerHTML = "";
+
+  for (let n = room.minNights; n <= room.maxNights; n++) {
+    const price = calcTotalPrice(n);
+
+    const row = document.createElement("div");
+    row.className = "night-row";
+    row.innerHTML = `
+      <div>${n} 晚</div>
+      <div class="price">$${price.toLocaleString()}</div>
+    `;
+
+    row.onclick = () => {
+      selectedNights = n;
+
+      // 高亮選取
+      document.querySelectorAll(".night-row")
+        .forEach(e => e.style.background = "#f7f7f7");
+
+      row.style.background = "#cfe8ff";
+    };
+
+    container.appendChild(row);
+  }
+}
+
+/* -------------------------------------------------------
+   計算入住價格
+   依據 rooms.json：weekdayPrice / weekendPrice / specialPrice
+------------------------------------------------------- */
+function calcTotalPrice(nights) {
+  let total = 0;
+
+  const checkIn = new Date(startDate);
 
   for (let i = 0; i < nights; i++) {
-    const price = getPriceByDate(d, room);
-    const label = getPriceLabel(d, room);
+    const d = new Date(checkIn);
+    d.setDate(checkIn.getDate() + i);
 
-    detailArr.push({
-      date: d.toISOString().split("T")[0],
-      price,
-      label
-    });
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const key = `${y}-${m}-${dd}`;
 
-    d.setDate(d.getDate() + 1);
+    // 特殊日
+    if (room.specialPrice[key]) {
+      total += room.specialPrice[key];
+      continue;
+    }
+
+    const w = d.getDay(); // 0=日 6=六
+
+    // 假日
+    if (w === 0 || w === 6) {
+      total += room.priceWeekend;
+    } else {
+      total += room.priceWeekday;
+    }
   }
 
-  return detailArr;
+  return total;
 }
 
-// ---- 顯示 Summary + 每日明細
-function showSummary() {
-  const summary = document.getElementById("summaryBox");
-  summary.style.display = "block";
+/* -------------------------------------------------------
+   下一步 → 填寫資料
+------------------------------------------------------- */
+document.getElementById("nextBtn").onclick = () => {
+  if (!selectedNights) {
+    alert("請先選擇入住天數");
+    return;
+  }
 
-  const checkoutDate = getCheckoutDate(checkin, selectedNights);
-  const total = calculateTotalPrice(roomData, checkin, selectedNights);
+  const url =
+    `form.html?roomId=${roomId}&date=${startDate}&nights=${selectedNights}`;
 
-  document.getElementById("checkinText").innerText = checkin;
-  document.getElementById("checkoutText").innerText = checkoutDate;
-  document.getElementById("nightsText").innerText = selectedNights;
-  document.getElementById("priceText").innerText = `$${total.toLocaleString()}`;
+  location.href = url;
+};
 
-  // ---- 新增：每日明細 UI ----
-  const details = getDailyPriceDetails(roomData, checkin, selectedNights);
-  let html = `<div class="price-detail-box">`;
-
-  details.forEach(item => {
-    html += `
-      <div class="price-detail-item">
-        ${item.date} ${item.label}：
-        <span class="price-detail-bold">$${item.price.toLocaleString()}</span>
-      </div>`;
-  });
-
-  html += `</div>`;
-  summary.insertAdjacentHTML("beforeend", html);
-
-  // ---- 下一步 ----
-  document.getElementById("nextBtn").disabled = false;
-  document.getElementById("nextBtn").onclick = () => {
-    const encoded = encodeURIComponent(JSON.stringify(details));
-
-    window.location.href =
-      `form.html?roomId=${roomId}&date=${checkin}`+
-      `&nights=${selectedNights}&checkout=${checkoutDate}`+
-      `&daily=${encoded}`;
-  };
-}
+/* -------------------------------------------------------
+   初始化
+------------------------------------------------------- */
+loadRoomData();
 </script>
+
+</body>
+</html>
