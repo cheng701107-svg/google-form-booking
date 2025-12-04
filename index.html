@@ -1,31 +1,111 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reserve+ 住宿預約系統</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>住宿預約系統｜Booking System</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+
 <style>
-body{margin:0;background:#F3F5F8;font-family:"Noto Sans TC";}
-h1{text-align:center;margin-top:70px;font-size:28px;color:#222;font-weight:700;}
-.box{max-width:320px;margin:20px auto;text-align:center;}
-a{
- display:block;background:#4285F4;color:#fff;padding:16px;border-radius:14px;
- text-decoration:none;margin:14px 0;font-size:18px;font-weight:600;
- box-shadow:0 4px 16px rgba(66,133,244,.35);
-}
+  /* ====== Index Style ====== */
+  body{
+    margin:0;
+    font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+    background:#F7F9FC;
+    color:#333;
+  }
+
+  header{
+    width:100%;
+    background:#0D6EFD;
+    color:#fff;
+    text-align:center;
+    padding:28px 16px;
+    font-size:26px;
+    font-weight:900;
+    letter-spacing:1px;
+  }
+
+  .container{
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+  }
+
+  .menu-grid{
+    display:grid;
+    gap:24px;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  }
+
+  .card{
+    background:#fff;
+    border-radius:14px;
+    padding:30px;
+    box-shadow:0 8px 22px rgba(0,0,0,0.06);
+    transition:0.3s;
+    cursor:pointer;
+    text-align:center;
+  }
+  .card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 16px 28px rgba(0,0,0,0.1);
+  }
+
+  .card h2{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+    color:#0D6EFD;
+  }
+  p.desc{color:#666;margin-top:8px;font-size:15px;}
+
+  footer{text-align:center;margin-top:50px;color:#666;padding:20px 0;font-size:14px;}
 </style>
 </head>
 
 <body>
 
-<h1>🏨 Reserve+ 住宿預約系統</h1>
+<header> 🏨 商用級住宿預約系統 </header>
 
-<div class="box">
-  <a href="booking-step.html">開始預約 → 選日期</a>
-  <a href="booking-room.html">查看房型列表</a>
-  <a href="booking-info.html">測試後續頁面</a>
+<div class="container">
+
+  <div class="menu-grid">
+
+    <a href="booking.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <h2>📅 我要預訂</h2>
+        <p class="desc">查看房況、挑選房型、直接預約入住</p>
+      </div>
+    </a>
+
+    <a href="admin.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <h2>📊 訂單後台管理</h2>
+        <p class="desc">訂單查詢 / 新增 / 修改 / 刪除 / 匯出</p>
+      </div>
+    </a>
+
+    <a href="calendar.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <h2>📌 查看空房日曆</h2>
+        <p class="desc">直覺式空房查詢，Google Reserve風格</p>
+      </div>
+    </a>
+
+    <a href="pricing.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <h2>💰 方案與房價</h2>
+        <p class="desc">動態定價、連假費率、方案介紹</p>
+      </div>
+    </a>
+
+  </div>
+
 </div>
+
+<footer>© 2025 Booking System | Powered by GitHub Pages + GAS</footer>
 
 </body>
 </html>
