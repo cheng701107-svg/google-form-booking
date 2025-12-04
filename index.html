@@ -2,110 +2,58 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>住宿預約系統｜Booking System</title>
+<title>線上訂房 Booking</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
 <link rel="stylesheet" href="assets/style.css">
-
-<style>
-  /* ====== Index Style ====== */
-  body{
-    margin:0;
-    font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
-    background:#F7F9FC;
-    color:#333;
-  }
-
-  header{
-    width:100%;
-    background:#0D6EFD;
-    color:#fff;
-    text-align:center;
-    padding:28px 16px;
-    font-size:26px;
-    font-weight:900;
-    letter-spacing:1px;
-  }
-
-  .container{
-    max-width:1200px;
-    margin:auto;
-    padding:40px 20px;
-  }
-
-  .menu-grid{
-    display:grid;
-    gap:24px;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  }
-
-  .card{
-    background:#fff;
-    border-radius:14px;
-    padding:30px;
-    box-shadow:0 8px 22px rgba(0,0,0,0.06);
-    transition:0.3s;
-    cursor:pointer;
-    text-align:center;
-  }
-  .card:hover{
-    transform:translateY(-5px);
-    box-shadow:0 16px 28px rgba(0,0,0,0.1);
-  }
-
-  .card h2{
-    margin:0;
-    font-size:22px;
-    font-weight:800;
-    color:#0D6EFD;
-  }
-  p.desc{color:#666;margin-top:8px;font-size:15px;}
-
-  footer{text-align:center;margin-top:50px;color:#666;padding:20px 0;font-size:14px;}
-</style>
 </head>
-
 <body>
 
-<header> 🏨 商用級住宿預約系統 </header>
+<header>
+  <h2>線上預約訂房</h2>
+</header>
 
-<div class="container">
+<section class="card">
+  <label>入住日期</label>
+  <input id="checkin" type="text" placeholder="選擇入住日期" readonly>
+  
+  <label>退房日期</label>
+  <input id="checkout" type="text" placeholder="選擇退房日期" readonly>
 
-  <div class="menu-grid">
+  <button onclick="searchRooms()">查看可預訂房型 🔍</button>
+</section>
 
-    <a href="booking.html" style="text-decoration:none;color:inherit;">
-      <div class="card">
-        <h2>📅 我要預訂</h2>
-        <p class="desc">查看房況、挑選房型、直接預約入住</p>
-      </div>
-    </a>
+<section id="rooms" class="room-list"></section>
 
-    <a href="admin.html" style="text-decoration:none;color:inherit;">
-      <div class="card">
-        <h2>📊 訂單後台管理</h2>
-        <p class="desc">訂單查詢 / 新增 / 修改 / 刪除 / 匯出</p>
-      </div>
-    </a>
+<script>
+flatpickr.localize(flatpickr.l10ns.zh_tw);
+flatpickr("#checkin",{minDate:"today"});
+flatpickr("#checkout",{minDate:"today"});
 
-    <a href="calendar.html" style="text-decoration:none;color:inherit;">
-      <div class="card">
-        <h2>📌 查看空房日曆</h2>
-        <p class="desc">直覺式空房查詢，Google Reserve風格</p>
-      </div>
-    </a>
+async function searchRooms(){
+  const ci=document.getElementById("checkin").value;
+  const co=document.getElementById("checkout").value;
+  if(!ci||!co) return alert("請選擇日期");
 
-    <a href="pricing.html" style="text-decoration:none;color:inherit;">
-      <div class="card">
-        <h2>💰 方案與房價</h2>
-        <p class="desc">動態定價、連假費率、方案介紹</p>
-      </div>
-    </a>
+  const res= await fetch(`/api/availability?start=${ci}&end=${co}`);
+  const data= await res.json();
 
-  </div>
-
-</div>
-
-<footer>© 2025 Booking System | Powered by GitHub Pages + GAS</footer>
+  document.getElementById("rooms").innerHTML=
+    data.rooms.map(r=>`
+    <div class="room-card">
+      <img src="${r.images[0]}">
+      <h3>${r.title}</h3>
+      <p>${r.desc}</p>
+      <span class="price">NT$${r.price}</span>
+      <a href="booking.html?room=${r.id}&ci=${ci}&co=${co}">預訂</a>
+    </div>
+    `).join("");
+}
+</script>
 
 </body>
 </html>
