@@ -2,44 +2,72 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XXX民宿線上預訂</title>
-
+<title>確認訂房</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="assets/style.css">
-<script src="assets/booking.js" defer></script>
-
 </head>
+
 <body>
+<header><h2>填寫訂房資料</h2></header>
 
-<header class="topbar">XXX民宿｜線上預訂</header>
+<section class="card">
 
-<div class="form-box">
+  <div id="roomInfo"></div>
 
-  <h2>選擇房型</h2>
-  <select id="roomSelect"></select>
+  <label>姓名 *</label>
+  <input id="name" required>
 
-  <h2>入住日期</h2>
-  <input type="date" id="date">
+  <label>手機 *</label>
+  <input id="phone" required placeholder="0912345678">
 
-  <h2>入住天數</h2>
-  <input type="number" id="nights" value="1" min="1">
+  <label>Email</label>
+  <input id="email">
 
-  <h2>訂房人姓名</h2>
-  <input type="text" id="name" placeholder="請輸入姓名">
+  <label>備註</label>
+  <textarea id="note"></textarea>
 
-  <h2>聯絡電話</h2>
-  <input type="tel" id="phone" placeholder="0912345678">
+  <button onclick="submitBooking()">送出訂單 ✔</button>
+</section>
 
-  <h2>備註（非必填）</h2>
-  <textarea id="note" placeholder="如需加床、嬰兒床請註明"></textarea>
+<script>
+const url=new URL(location.href);
+const room=url.searchParams.get("room");
+const ci=url.searchParams.get("ci");
+const co=url.searchParams.get("co");
 
-  <button onclick="createOrder()">送出預訂</button>
+async function loadRoom(){
+  const res= await fetch(`/api/rooms?id=${room}`);
+  const r= (await res.json()).room;
 
-  <p id="msg" class="message"></p>
+  document.getElementById("roomInfo").innerHTML=
+  `<h3>${r.title}</h3>
+   <p>${r.desc}</p>
+   <p>入住：${ci} → 退房：${co}</p>
+   <strong>價格：NT$${r.price}</strong>`;
+}
+loadRoom();
 
-</div>
+async function submitBooking(){
+  const body={
+    room_id:room,
+    date_start:ci,
+    date_end:co,
+    name:name.value,
+    phone:phone.value,
+    email:email.value,
+    note:note.value
+  };
 
-<footer>© 2025 XXX民宿 Booking System</footer>
+  const res=await fetch("/api/createBooking",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+
+  const data = await res.json();
+  alert(data.success ? "預訂成功!" : "失敗 請稍後再試");
+}
+</script>
 
 </body>
 </html>
