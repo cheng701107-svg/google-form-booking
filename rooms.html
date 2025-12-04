@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>線上訂房</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:"Noto Sans TC";background:#f5f5f5;}
+header{background:#4285F4;color:#fff;padding:16px;text-align:center;font-weight:700;font-size:22px;}
+#list{padding:16px;}
+.card{background:#fff;margin-bottom:14px;padding:18px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+.card h2{margin:0;font-size:20px;}
+.price{font-size:18px;color:#E53935;margin:6px 0;font-weight:bold;}
+.desc{color:#666;}
+.btn{display:block;width:100%;background:#34A853;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;margin-top:10px;}
+</style>
+</head>
+
+<body>
+<header>請選擇房型</header>
+<div id="list"></div>
+
+<script>
+const API="YOUR_GAS_URL";
+
+async function loadRooms(){
+  const res = await fetch(API+"?action=rooms");
+  const data = await res.json();
+  document.getElementById("list").innerHTML=data.map(r=>`
+    <div class="card">
+      <h2>${r.name}</h2>
+      <div class="price">平日 $${r.weekday}｜假日 $${r.weekend}</div>
+      <div class="desc">${r.desc}</div>
+      <a class="btn" href="booking.html?room=${r.id}">立即預訂</a>
+    </div>
+  `).join("");
+}
+loadRooms();
+</script>
+</body>
+</html>
