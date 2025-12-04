@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>訂房資料</title>
+
+<style>
+body{font-family:"Noto Sans TC";margin:0;background:#fafafa;}
+.container{max-width:420px;margin:auto;padding:20px;}
+label{display:block;margin-top:14px;font-weight:700;}
+input,select,textarea{width:100%;padding:10px;margin-top:6px;border:1px solid #ccc;border-radius:6px;}
+.price-box{background:#fff;border-radius:10px;padding:15px;margin-top:20px;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+.total{font-size:22px;color:#E53935;font-weight:bold;text-align:right;margin-top:10px;}
+.btn{width:100%;padding:14px;background:#4285F4;color:white;border:none;border-radius:10px;font-size:18px;margin-top:20px;}
+.disable{opacity:0.4;pointer-events:none;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>訂房資訊</h2>
+
+<label>入住日期</label>
+<input type="date" id="checkin">
+
+<label>退房日期</label>
+<input type="date" id="checkout">
+
+<label>大人人數</label>
+<select id="adult">
+  <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+</select>
+
+<label>孩童人數</label>
+<select id="child">
+  <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option>
+</select>
+
+<label>備註</label>
+<textarea id="note"></textarea>
+
+<div class="price-box">
+  <div>入住晚數：<span id="nights">0</span> 晚</div>
+  <div class="total">總金額：$<span id="price">0</span></div>
+</div>
+
+<button class="btn" onclick="submitBooking()">送出訂單</button>
+
+</div>
+
+<script>
+const API="YOUR_GAS_URL";
+const room=new URLSearchParams(location.search).get("room");
+let roomData,calendar=[];
+
+async function init(){
+  roomData=(await fetch(API+"?action=rooms").then(r=>r.json())).find(r=>r.id===room);
+  calendar=await fetch(API+"?action=calendar").then(r=>r.json());
+}
+init();
+
+// 日期 & 價格計算
+function calc(){
+  if(!checkin.value||!checkout.value) return;
+  const a=new Date(checkin.value),b=new Date(checkout.value);
+  const diff=(b-a)/86400000;
+  if(diff<=0)return alert("退房日必須大於入住日");
+
+  nights.innerText=diff;
+
+  let total=0;
+  for(let i=0;i<diff;i++){
+    let d=new Date(checkin.value);
+    d.setDate(d.getDate()+i);
+    let isWeekend=[0,6].includes(d.getDay());
+    total+=isWeekend?roomData.weekend:roomData.weekday;
+
+    let f=d.toISOString().split("T")[0];
+    let item=calendar.find(c=>c.date===f&&c.room_id===room);
+    if(item && item.used>=item.stock){
+      alert("⚠ "+f+" 已滿房！");
+      checkout.value="";
+      calc();
+      return;
+    }
+  }
+  price.innerText=total;
+}
+checkin.onchange=calc;
+checkout.onchange=calc;
+
+async function submitBooking(){
+  const body={
+    room_id:room,name:prompt("請輸入姓名："),
+    phone:prompt("請輸入手機："),
+    checkin:checkin.value,
+    checkout:checkout.value,
+    adult:adult.value,
+    child:child.value,
+    note:note.value
+  };
+
+  const res=await fetch(API+"?action=createBooking",{
+    method:"POST",body:JSON.stringify(body)
+  }).then(r=>r.json());
+
+  if(res.success)location.href="success.html?id="+res.order_id+"&price="+res.price;
+  else alert(res.message);
+}
+</script>
+</body>
+</html>
