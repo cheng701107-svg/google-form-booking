@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>Google Reserve Style Wizard 訂房</title>
+
+<style>
+body{
+  font-family:"Noto Sans TC";
+  background:#f7f7f7;
+  margin:0;padding:0;
+}
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:24px;
+}
+
+.step{
+  display:none;
+  background:white;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+.step.active{display:block;}
+
+.card{
+  border:1px solid #ddd;
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.2s;
+}
+.card:hover{border-color:#007AFF;transform:scale(1.01);}
+
+button{
+  width:100%;background:#007AFF;color:white;
+  padding:14px;font-size:18px;border:none;border-radius:10px;
+  cursor:pointer;margin-top:14px;
+}
+button.back{background:#ccc;color:black;}
+
+h2{margin-top:0;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- Step1：選房 -->
+<div class="step active" id="step1">
+  <h2>① 選擇房型</h2>
+  <div id="roomList"></div>
+  <button onclick="nextStep()">下一步 → 日期</button>
+</div>
+
+<!-- Step2：選日期 -->
+<div class="step" id="step2">
+  <h2>② 選擇入住日期</h2>
+  <input type="date" id="date" style="width:100%;padding:12px;">
+  <br><br>
+  <button class="back" onclick="prevStep()">← 返回</button>
+  <button onclick="nextStep()">下一步 → 人數</button>
+</div>
+
+<!-- Step3：選人數 -->
+<div class="step" id="step3">
+  <h2>③ 入住人數</h2>
+  <input type="number" id="people" value="2" min="1" style="width:100%;padding:12px;">
+  <br><br>
+  <button class="back" onclick="prevStep()">← 返回</button>
+  <button onclick="nextStep()">下一步 → 填寫資料</button>
+</div>
+
+<!-- Step4：資料填寫 + 送出 -->
+<div class="step" id="step4">
+  <h2>④ 填寫訂房資料</h2>
+  <input id="name" placeholder="姓名" style="width:100%;padding:12px;"><br><br>
+  <input id="phone" placeholder="手機" style="width:100%;padding:12px;"><br><br>
+  <input type="number" id="nights" min="1" value="1" style="width:100%;padding:12px;"><br><br>
+
+  <h3>💰 住宿金額：<span id="priceShow">0</span> 元</h3>
+
+  <button class="back" onclick="prevStep()">← 返回</button>
+  <button onclick="submitBooking()">確認訂房</button>
+</div>
+
+</div>
+
+
+<script>
+/* ============================================================
+   🔗 API Endpoint（修改成你的 GAS Web App URL）
+   ============================================================ */
+const API = "你的-GAS-網址";
+
+/* ========== Step 控制 ========== */
+let step=1, selectedRoom=null, roomPrice=0;
+
+function nextStep(){
+  if(step===1 && !selectedRoom){ alert("請先選擇房型");return; }
+  step++; update();
+}
+function prevStep(){ step--; update(); }
+function update(){
+  document.querySelectorAll(".step").forEach(s=>s.classList.remove("active"));
+  document.getElementById("step"+step).classList.add("active");
+
+  if(step===4){
+    const total = roomPrice * document.getElementById("nights").value;
+    document.getElementById("priceShow").innerText = total;
+  }
+}
+
+/* ========== Step①：取得房型 ========== */
+async function loadRooms(){
+  const res = await fetch(`${API}?action=rooms`);
+  const data = await res.json();
+  const dom = document.getElementById("roomList");
+
+  data.rooms.forEach(r=>{
+    dom.innerHTML+=`
+    <div class="card" onclick="selectRoom('${r.room_id}',${r.price})">
+      <b>${r.name}</b><br>
+      $${r.price}/晚 ｜ 可住 ${r.capacity} 人
+    </div>`;
+  })
+}
+loadRooms();
+
+function selectRoom(id,price){
+  selectedRoom=id;
+  roomPrice=price;
+  alert(`已選擇房型：${id}`);
+}
+
+/* ========== Step④：送出訂單 ========== */
+async function submitBooking(){
+  const total = roomPrice * document.getElementById("nights").value;
+  
+  const body = {
+    action:"createBooking",
+    room_id:selectedRoom,
+    date:date.value,
+    nights:nights.value,
+    name:name.value,
+    phone:phone.value,
+    total
+  };
+
+  const r = await fetch(API,{method:"POST",body:JSON.stringify(body)});
+  const d = await r.json();
+
+  if(d.success) alert(`🎉 訂房成功！訂單編號：${d.booking_id}`);
+  else alert("提交失敗");
+}
+</script>
+
+</body>
+</html>
