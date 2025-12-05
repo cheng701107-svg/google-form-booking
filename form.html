@@ -182,72 +182,88 @@ textarea{height:95px}
 
 <script>
 /*** 取得 URL 參數 ***/
-const params=new URLSearchParams(location.search);
-const roomId=params.get("roomId");
-const checkIn=params.get("date");
-const nights=Number(params.get("nights"));
+const params = new URLSearchParams(location.search);
+const roomId = params.get("roomId");
+const checkIn = params.get("date");
+const nightsNum = Number(params.get("nights"));
 
 /*** 計算退房 ***/
-let checkout="-";
-if(checkIn&&nights){
-  const d=new Date(checkIn);
-  d.setDate(d.getDate()+nights);
-  checkout=d.toISOString().split("T")[0];
+let checkoutStr = "-";
+if (checkIn && nightsNum) {
+  const d = new Date(checkIn);
+  d.setDate(d.getDate() + nightsNum);
+  checkoutStr = d.toISOString().split("T")[0];
 }
 
-document.getElementById("checkin").innerText=checkIn??"-";
-document.getElementById("checkout").innerText=checkout??"-";
-document.getElementById("nights").innerText=nights??"-";
+document.getElementById("checkin").innerText  = checkIn   ?? "-";
+document.getElementById("checkout").innerText = checkoutStr ?? "-";
+document.getElementById("nights").innerText   = nightsNum ?? "-";
 
 /*** 房型 + 金額計算 ***/
 async function loadRoom(){
-  const res=await fetch("data/rooms.json");
-  const rooms=await res.json();
-  const room=rooms.find(r=>r.id===roomId);
+  const res   = await fetch("data/rooms.json");
+  const rooms = await res.json();
+  const room  = rooms.find(r => r.id === roomId);
 
-  document.getElementById("roomTitle").innerText=room.title;
+  document.getElementById("roomTitle").innerText = room.title;
 
-  let total=0,sd=new Date(checkIn);
-  for(let i=0;i<nights;i++){
-    const d=new Date(sd);d.setDate(sd.getDate()+i);
-    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    if(room.specialPrice&&room.specialPrice[k]){total+=room.specialPrice[k];continue;}
-    total+=([0,6].includes(d.getDay())?room.priceWeekend:room.priceWeekday);
+  let total = 0, sd = new Date(checkIn);
+  for(let i=0;i<nightsNum;i++){
+    const d = new Date(sd);
+    d.setDate(sd.getDate() + i);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    if(room.specialPrice && room.specialPrice[k]){ total += room.specialPrice[k]; continue; }
+    total += ([0,6].includes(d.getDay()) ? room.priceWeekend : room.priceWeekday);
   }
-  document.getElementById("total").innerText="NT$ "+total.toLocaleString();
+  document.getElementById("total").innerText = "NT$ " + total.toLocaleString();
 }
 loadRoom();
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyHOU7VmPD80BXHq7SjOD7NthUYHKI1EjtEA_62euGDKi_Jwbzjwu6TUxGKGPR7u3i5/exec";
+/*** 這裡改成「確實抓到 DOM 元素」 ***/
+const nameInput   = document.getElementById("name");
+const phoneInput  = document.getElementById("phone");
+const emailInput  = document.getElementById("email");
+const adultInput  = document.getElementById("adult");
+const childInput  = document.getElementById("child");
+const petSelect   = document.getElementById("pet");
+const noteTextarea= document.getElementById("note");
 
+const roomTitleEl = document.getElementById("roomTitle");
+const checkinEl   = document.getElementById("checkin");
+const checkoutEl  = document.getElementById("checkout");
+const nightsEl    = document.getElementById("nights");
+
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzU3HhsuKO5y_MTykPMY64xeusUJOzLN5j5tfZW-T2kKoNM4IHp5s7L8vSSPC427AsE/exec";
+
+/*** 用 FormData 送（避免 CORS 問題） ***/
 document.getElementById("submitBtn").onclick = async () => {
-
-  const formData = new FormData();
-  formData.append("name", name.value);
-  formData.append("phone", phone.value);
-  formData.append("email", email.value);
-  formData.append("room", roomTitle.innerText);
-  formData.append("checkin", checkin.innerText);
-  formData.append("checkout", checkout.innerText);
-  formData.append("nights", nights.innerText);
-  formData.append("adult", adult.value);
-  formData.append("child", child.value);
-  formData.append("pet", pet.value);
-  formData.append("note", note.value);
+  const fd = new FormData();
+  fd.append("name",     nameInput.value);
+  fd.append("phone",    phoneInput.value);
+  fd.append("email",    emailInput.value);
+  fd.append("room",     roomTitleEl.innerText);
+  fd.append("checkin",  checkinEl.innerText);
+  fd.append("checkout", checkoutEl.innerText);
+  fd.append("nights",   nightsEl.innerText);
+  fd.append("adult",    adultInput.value);
+  fd.append("child",    childInput.value);
+  fd.append("pet",      petSelect.value);
+  fd.append("note",     noteTextarea.value);
 
   try {
     const res = await fetch(GAS_URL, {
-      method:"POST",
-      body: formData   // ← ⭐ 關鍵！不要 JSON → 不會再觸發 CORS
-    }).then(r=>r.json());
+      method: "POST",
+      body: fd
+    }).then(r => r.json());
 
     alert("🎉 預約成功！訂單編號：" + res.orderId);
 
-  }catch(err){
-    alert("❗ 仍失敗 = GAS_URL 未重新部署 Anyone 存取");
+  } catch (err) {
     console.error(err);
+    alert("❗ GAS 連線失敗，請檢查 URL or 部署。");
   }
 };
+</script>
 
 
 
