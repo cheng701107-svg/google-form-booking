@@ -187,16 +187,24 @@
 <div class="table-box">
   <table>
     <thead>
-      <tr>
-        <th>姓名</th>
-        <th>房型</th>
-        <th>入住</th>
-        <th>退房</th>
-        <th>狀態</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="bookingTable"></tbody>
+  <tr>
+    <th>姓名</th>
+    <th>電話</th>
+    <th>Email</th>
+    <th>房型</th>
+    <th>入住</th>
+    <th>退房</th>
+    <th>晚數</th>
+    <th>大人</th>
+    <th>小孩</th>
+    <th>寵物</th>
+    <th>備註</th>
+    <th>狀態</th>
+    <th style="width:80px"></th>
+  </tr>
+</thead>
+<tbody id="bookingTable"></tbody>
+
   </table>
 </div>
 
@@ -205,30 +213,20 @@
   <div class="modal-box">
     <div class="modal-title">編輯訂單</div>
 
-    <div class="form-row">
-      <label>姓名</label>
-      <input type="text" id="editName">
-    </div>
+    <div class="form-row"><label>姓名</label><input id="editName"></div>
+    <div class="form-row"><label>電話</label><input id="editPhone"></div>
+    <div class="form-row"><label>Email</label><input id="editEmail"></div>
+    <div class="form-row"><label>房型</label><input id="editRoom"></div>
 
-    <div class="form-row">
-      <label>手機</label>
-      <input type="text" id="editPhone">
-    </div>
+    <div class="form-row"><label>入住</label><input type="date" id="editCheckin"></div>
+    <div class="form-row"><label>退房</label><input type="date" id="editCheckout"></div>
+    <div class="form-row"><label>晚數</label><input type="number" id="editNights"></div>
 
-    <div class="form-row">
-      <label>房型</label>
-      <input type="text" id="editRoom">
-    </div>
+    <div class="form-row"><label>大人</label><input type="number" id="editAdult"></div>
+    <div class="form-row"><label>小孩</label><input type="number" id="editChild"></div>
+    <div class="form-row"><label>寵物</label><input id="editPet"></div>
 
-    <div class="form-row">
-      <label>入住日期</label>
-      <input type="date" id="editCheckin">
-    </div>
-
-    <div class="form-row">
-      <label>退房日期</label>
-      <input type="date" id="editCheckout">
-    </div>
+    <div class="form-row"><label>備註</label><input id="editNote"></div>
 
     <div class="form-row">
       <label>訂單狀態</label>
@@ -246,6 +244,7 @@
   </div>
 </div>
 
+
 <script>
 
 /* 假資料（可改成 Google Sheet / API） */
@@ -262,29 +261,29 @@ function renderTable() {
   const tbody = document.getElementById("bookingTable");
   tbody.innerHTML = "";
 
-  bookings.forEach(b => {
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
+  bookings.forEach(b=>{
+    tbody.innerHTML += `
+    <tr>
       <td>${b.name}</td>
+      <td>${b.phone}</td>
+      <td>${b.email || "-"}</td>
       <td>${b.room}</td>
       <td>${b.checkin}</td>
       <td>${b.checkout}</td>
+      <td>${b.nights}</td>
+      <td>${b.adult}</td>
+      <td>${b.child}</td>
+      <td>${b.pet}</td>
+      <td>${b.note || "-"}</td>
+
       <td><span class="tag ${b.status}">${statusText(b.status)}</span></td>
 
+      <!-- 編輯/刪除 保留 -->
       <td>
-        <!-- EDIT BUTTON -->
-        <button class="btn-icon" onclick="openEdit('${b.id}')">
-          <span class="material-icons">edit</span>
-        </button>
-
-        <button class="btn-icon" onclick="openDelete('${b.id}')">
-          <span class="material-icons">delete</span>
-        </button>
+        <button class="btn-icon" onclick="openEdit('${b.id}')"><span class="material-icons">edit</span></button>
+        <button class="btn-icon" onclick="openDelete('${b.id}')"><span class="material-icons">delete</span></button>
       </td>
-    `;
-
-    tbody.appendChild(row);
+    </tr>`;
   });
 }
 
@@ -297,30 +296,46 @@ function statusText(code) {
 }
 
 /* ---------- EDIT MODAL FUNCTIONS ---------- */
-function openEdit(id) {
-  editTarget = bookings.find(b => b.id === id);
+function openEdit(id){
+  editTarget = bookings.find(x=>x.id===id);
 
-  document.getElementById("editName").value = editTarget.name;
-  document.getElementById("editPhone").value = editTarget.phone;
-  document.getElementById("editRoom").value = editTarget.room;
-  document.getElementById("editCheckin").value = editTarget.checkin;
-  document.getElementById("editCheckout").value = editTarget.checkout;
-  document.getElementById("editStatus").value = editTarget.status;
+  editName.value   = editTarget.name;
+  editPhone.value  = editTarget.phone;
+  editEmail.value  = editTarget.email;
+  editRoom.value   = editTarget.room;
+  editCheckin.value= editTarget.checkin;
+  editCheckout.value=editTarget.checkout;
 
-  document.getElementById("editModalBg").style.display = "flex";
+  editNights.value = editTarget.nights;
+  editAdult.value  = editTarget.adult;
+  editChild.value  = editTarget.child;
+  editPet.value    = editTarget.pet;
+  editNote.value   = editTarget.note;
+
+  editStatus.value = editTarget.status;
+  document.getElementById("editModalBg").style.display="flex";
 }
 
 function closeEdit() {
   document.getElementById("editModalBg").style.display = "none";
 }
 
-function saveEdit() {
-  editTarget.name = document.getElementById("editName").value;
-  editTarget.phone = document.getElementById("editPhone").value;
-  editTarget.room = document.getElementById("editRoom").value;
-  editTarget.checkin = document.getElementById("editCheckin").value;
-  editTarget.checkout = document.getElementById("editCheckout").value;
-  editTarget.status = document.getElementById("editStatus").value;
+/* 儲存變更+即時刷新畫面 */
+function saveEdit(){
+  editTarget.name   = editName.value;
+  editTarget.phone  = editPhone.value;
+  editTarget.email  = editEmail.value;
+  editTarget.room   = editRoom.value;
+  editTarget.checkin= editCheckin.value;
+  editTarget.checkout=editCheckout.value;
+
+  editTarget.nights= editNights.value;
+  editTarget.adult = editAdult.value;
+  editTarget.child = editChild.value;
+  editTarget.pet   = editPet.value;
+  editTarget.note  = editNote.value;
+
+  editTarget.status= editStatus.value;
 
   closeEdit();
   renderTable();
