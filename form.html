@@ -221,30 +221,34 @@ loadRoom();
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzxydF7i_NVk0o8V-z8ASEhf7bao9JlieEr95Qh-TSLqi2PStllbzv4H6XeYDAAdGW4/exec";
 
 document.getElementById("submitBtn").onclick = async () => {
+
   const payload = {
-    name: name.value,
-    phone: phone.value,
-    email: email.value,
-    room: roomTitle.innerText,
-    checkin: checkin.innerText,
-    checkout: checkout.innerText,
-    nights: nights.innerText,
-    adult: adult.value,
-    child: child.value,
-    pet: pet.value,
-    note: note.value
+    name:name.value,
+    phone:phone.value,
+    email:email.value,
+    room:roomTitle.innerText,
+    checkin:checkin.innerText,
+    checkout:checkout.innerText,
+    nights:nights.innerText,
+    adult:adult.value,
+    child:child.value,
+    pet:pet.value,
+    note:note.value
   };
 
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    body: JSON.stringify(payload)
-  }).then(r=>r.json()).catch(err=>console.error(err));
+  try{
+    const res = await fetch(GAS_URL, {
+      method:"POST",
+      redirect:"follow",
+      headers:{"Content-Type": "application/json"},
+      body:JSON.stringify(payload)
+    }).then(r=>r.json());
 
-  if(res.success){
-    alert("✔ 預約成功! 訂單編號: "+res.orderId);
-  }else{
-    alert("❗送出失敗："+res.error);
+    alert("✔ 預約成功！訂單編號：" + res.orderId);
+
+  }catch(err){
+    console.error(err);
+    alert("❗ GAS 連線失敗，檢查是否重新部署");
   }
 };
 
