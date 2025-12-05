@@ -218,34 +218,36 @@ async function loadRoom(){
 }
 loadRoom();
 
-document.getElementById("submitBtn").onclick = async () => {
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzxydF7i_NVk0o8V-z8ASEhf7bao9JlieEr95Qh-TSLqi2PStllbzv4H6XeYDAAdGW4/exec";
 
+document.getElementById("submitBtn").onclick = async () => {
   const payload = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    email: document.getElementById("email").value,
-    room: document.getElementById("roomTitle").innerText,
-    checkin: document.getElementById("checkin").innerText,
-    checkout: document.getElementById("checkout").innerText,
-    nights: document.getElementById("nights").innerText,
-    adult: document.getElementById("adult").value,
-    child: document.getElementById("child").value,
-    pet: document.getElementById("pet").value,
-    note: document.getElementById("note").value
+    name: name.value,
+    phone: phone.value,
+    email: email.value,
+    room: roomTitle.innerText,
+    checkin: checkin.innerText,
+    checkout: checkout.innerText,
+    nights: nights.innerText,
+    adult: adult.value,
+    child: child.value,
+    pet: pet.value,
+    note: note.value
   };
 
-  const res = await fetch("https://script.google.com/macros/s/AKfycbwXIBwEyMnaZsNd1ODZx6Dh320bnJ-zWr4u27ZCvyQCgrTy0BG22FgG8Djo1jHQIJ8i/exec", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(payload)
-  }).then(r=>r.json());
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  }).then(r=>r.json()).catch(err=>console.error(err));
 
   if(res.success){
-    location.href="result.html?orderId="+res.orderId;
+    alert("✔ 預約成功! 訂單編號: "+res.orderId);
   }else{
-    alert("❗ 送出失敗："+res.error);
+    alert("❗送出失敗："+res.error);
   }
 };
+
 
 </script>
 
