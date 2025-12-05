@@ -84,6 +84,7 @@
   .tag.confirmed { background: #e8f5e9; color: #2e7d32; }
   .tag.cancelled { background: #ffebee; color: #c62828; }
 
+  /* ---------- Buttons ---------- */
   .btn-icon {
     border: none;
     background: transparent;
@@ -99,22 +100,21 @@
     color: #1976d2;
   }
 
-  /* ---------- Modal Background ---------- */
+  /* ---------- Modal ---------- */
   .modal-bg {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.35);
+    background: rgba(0,0,0,0.4);
     display: none;
     justify-content: center;
     align-items: center;
   }
 
-  /* ---------- Modal ---------- */
   .modal-box {
-    width: 92%;
-    max-width: 430px;
+    width: 90%;
+    max-width: 400px;
     background: white;
-    padding: 22px;
+    padding: 20px;
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.25);
     animation: fadeIn 0.2s ease;
@@ -128,27 +128,7 @@
   .modal-title {
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 16px;
-  }
-
-  .form-row {
-    margin-bottom: 12px;
-  }
-
-  .form-row label {
-    font-size: 14px;
-    color: #555;
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  .form-row input, .form-row select {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 15px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    outline: none;
+    margin-bottom: 15px;
   }
 
   .modal-btns {
@@ -167,7 +147,7 @@
   }
 
   .btn.cancel { background: #eee; }
-  .btn.save { background: #1976d2; color: white; }
+  .btn.delete { background: #d32f2f; color: white; }
 
 </style>
 </head>
@@ -200,126 +180,141 @@
   </table>
 </div>
 
-<!-- =============== EDIT MODAL =============== -->
-<div id="editModalBg" class="modal-bg">
+<!-- Modal -->
+<div id="modalBg" class="modal-bg">
   <div class="modal-box">
-    <div class="modal-title">編輯訂單</div>
-
-    <div class="form-row">
-      <label>姓名</label>
-      <input type="text" id="editName">
-    </div>
-
-    <div class="form-row">
-      <label>手機</label>
-      <input type="text" id="editPhone">
-    </div>
-
-    <div class="form-row">
-      <label>房型</label>
-      <input type="text" id="editRoom">
-    </div>
-
-    <div class="form-row">
-      <label>入住日期</label>
-      <input type="date" id="editCheckin">
-    </div>
-
-    <div class="form-row">
-      <label>退房日期</label>
-      <input type="date" id="editCheckout">
-    </div>
-
-    <div class="form-row">
-      <label>訂單狀態</label>
-      <select id="editStatus">
-        <option value="new">新訂單</option>
-        <option value="confirmed">已確認</option>
-        <option value="cancelled">已取消</option>
-      </select>
-    </div>
-
+    <div class="modal-title">你確定要刪除此筆訂單嗎？</div>
     <div class="modal-btns">
-      <button class="btn cancel" onclick="closeEdit()">取消</button>
-      <button class="btn save" onclick="saveEdit()">儲存</button>
+      <button class="btn cancel" onclick="closeModal()">取消</button>
+      <button class="btn delete" onclick="confirmDelete()">刪除</button>
     </div>
   </div>
 </div>
 
 <script>
+/* 假資料（之後可串接 GAS / Firebase） */
+let bookings = [
+  {
+    id: "B001",
+    name: "王小明",
+    phone: "0912000111",
+    room: "A館包棟",
+    checkin: "2025-12-04",
+    checkout: "2025-12-05",
+    status: "new"
+  },
+  {
+    id: "B002",
+    name: "林美麗",
+    phone: "0988777666",
+    room: "B館包棟",
+    checkin: "2025-12-10",
+    checkout: "2025-12-12",
+    status: "confirmed"
+  },
+  {
+    id: "B003",
+    name: "陳大同",
+    phone: "0922333444",
+    room: "A館包棟",
+    checkin: "2025-12-20",
+    checkout: "2025-12-21",
+    status: "cancelled"
+  }
+];
 
-/* ❶ 連接 Google Sheet API */
-const API_URL = "https://script.google.com/macros/s/AKfycbyHOU7VmPD80BXHq7SjOD7NthUYHKI1EjtEA_62euGDKi_Jwbzjwu6TUxGKGPR7u3i5/exec";
+let deleteTarget = null;
 
-let bookings = [];
-let editTarget = null;
-
-/* ❷ 讀取 Google Sheet */
-async function loadData(){
-  const res = await fetch(API_URL);
-  bookings = await res.json();
-  renderTable();
-}
-
-/* ❸ 渲染表格 */
-function renderTable(){
+/* 顯示表格 */
+function renderTable() {
   const tbody = document.getElementById("bookingTable");
   tbody.innerHTML = "";
 
-  bookings.forEach(b=>{
-    tbody.innerHTML += `
-    <tr>
-      <td>${b.orderId}</td>
+  bookings.forEach(b => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
       <td>${b.name}</td>
-      <td>${b.phone}</td>
-      <td>${b.email}</td>
       <td>${b.room}</td>
       <td>${b.checkin}</td>
       <td>${b.checkout}</td>
-      <td>${b.nights}</td>
-      <td>${b.adult}</td>
-      <td>${b.child}</td>
-      <td>${b.pet}</td>
-      <td>${b.note}</td>
-      <td><span class="tag ${b.status || "new"}">${statusText(b.status)}</span></td>
       <td>
-        <button class="btn-icon" onclick="openEdit('${b.orderId}')"><span class="material-icons">edit</span></button>
-        <button class="btn-icon" onclick="openDelete('${b.orderId}')"><span class="material-icons">delete</span></button>
+        <span class="tag ${b.status}">
+          ${statusText(b.status)}
+        </span>
       </td>
-    </tr>`;
+      <td>
+        <button class="btn-icon" onclick="openDelete('${b.id}')">
+          <span class="material-icons">delete</span>
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
   });
 }
 
-/* ❹ Status 顯示 */
-function statusText(s){
-  return { new:"新訂單",confirmed:"已確認",cancelled:"已取消" }[s] || "新訂單";
+/* 中文狀態 */
+function statusText(code) {
+  return {
+    new: "新訂單",
+    confirmed: "已確認",
+    cancelled: "已取消"
+  }[code] || "-";
 }
 
-/* ❺ 編輯視窗──填入資料 */
-function openEdit(id){
-  editTarget = bookings.find(b=>b.orderId===id);
+/* 搜尋功能 */
+document.getElementById("searchInput").addEventListener("input", e => {
+  const key = e.target.value.trim();
 
-  editName.value = editTarget.name;
-  editPhone.value = editTarget.phone;
-  editEmail.value = editTarget.email;
-  editRoom.value = editTarget.room;
-  editCheckin.value = editTarget.checkin;
-  editCheckout.value = editTarget.checkout;
-  editNights.value = editTarget.nights;
-  editAdult.value = editTarget.adult;
-  editChild.value = editTarget.child;
-  editPet.value = editTarget.pet;
-  editNote.value = editTarget.note;
-  editStatus.value = editTarget.status || "new";
+  if (key === "") {
+    renderTable();
+    return;
+  }
 
-  document.getElementById("editModalBg").style.display="flex";
+  const result = bookings.filter(b =>
+    b.name.includes(key) ||
+    b.phone.includes(key) ||
+    b.room.includes(key)
+  );
+
+  const tbody = document.getElementById("bookingTable");
+  tbody.innerHTML = "";
+
+  result.forEach(b => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${b.name}</td>
+      <td>${b.room}</td>
+      <td>${b.checkin}</td>
+      <td>${b.checkout}</td>
+      <td><span class="tag ${b.status}">${statusText(b.status)}</span></td>
+      <td>
+        <button class="btn-icon" onclick="openDelete('${b.id}')">
+          <span class="material-icons">delete</span>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+});
+
+/* Modal 控制 */
+function openDelete(id) {
+  deleteTarget = id;
+  document.getElementById("modalBg").style.display = "flex";
 }
-function closeEdit(){ document.getElementById("editModalBg").style.display="none"; }
+function closeModal() {
+  document.getElementById("modalBg").style.display = "none";
+}
+function confirmDelete() {
+  bookings = bookings.filter(b => b.id !== deleteTarget);
+  closeModal();
+  renderTable();
+}
 
-/* ❻ 初始化 */
-loadData();
-
-
+/* 初始化 */
+renderTable();
 </script>
 
 </body>
