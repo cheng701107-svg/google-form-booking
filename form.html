@@ -222,35 +222,33 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbzU3HhsuKO5y_MTykPMY64x
 
 document.getElementById("submitBtn").onclick = async () => {
 
-  const payload = {
-    name:name.value,
-    phone:phone.value,
-    email:email.value,
-    room:roomTitle.innerText,
-    checkin:checkin.innerText,
-    checkout:checkout.innerText,
-    nights:nights.innerText,
-    adult:adult.value,
-    child:child.value,
-    pet:pet.value,
-    note:note.value
-  };
+  const formData = new FormData();
+  formData.append("name", name.value);
+  formData.append("phone", phone.value);
+  formData.append("email", email.value);
+  formData.append("room", roomTitle.innerText);
+  formData.append("checkin", checkin.innerText);
+  formData.append("checkout", checkout.innerText);
+  formData.append("nights", nights.innerText);
+  formData.append("adult", adult.value);
+  formData.append("child", child.value);
+  formData.append("pet", pet.value);
+  formData.append("note", note.value);
 
-  try{
+  try {
     const res = await fetch(GAS_URL, {
       method:"POST",
-      redirect:"follow",
-      headers:{"Content-Type": "application/json"},
-      body:JSON.stringify(payload)
+      body: formData   // ← ⭐ 關鍵！不要 JSON → 不會再觸發 CORS
     }).then(r=>r.json());
 
-    alert("✔ 預約成功！訂單編號：" + res.orderId);
+    alert("🎉 預約成功！訂單編號：" + res.orderId);
 
   }catch(err){
+    alert("❗ 仍失敗 = GAS_URL 未重新部署 Anyone 存取");
     console.error(err);
-    alert("❗ GAS 連線失敗，檢查是否重新部署");
   }
 };
+
 
 
 </script>
