@@ -256,9 +256,27 @@ let editTarget = null;
 /* ❷ 讀取 Google Sheet */
 async function loadData(){
   const res = await fetch(API_URL);
-  bookings = await res.json();
+  const rows = await res.json();
+
+  bookings = rows.map(r => ({
+    id: r.orderId,
+    name: r.name,
+    phone: r.phone,
+    email: r.email,
+    room: r.room,
+    checkin: r.checkin,
+    checkout: r.checkout,
+    nights: r.nights,
+    adult: r.adult,
+    child: r.child,
+    pet: r.pet,
+    note: r.note,
+    status: r.status || "new"   // 預設新訂單
+  }));
+
   renderTable();
 }
+
 
 
 /* ---------- Render Table ---------- */
@@ -347,7 +365,7 @@ function saveEdit(){
 }
 
 /* ---------- Initialize ---------- */
-renderTable();
+loadData(); // ← 不要再直接 renderTable()
 
 </script>
 
