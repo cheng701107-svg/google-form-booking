@@ -218,10 +218,35 @@ async function loadRoom(){
 }
 loadRoom();
 
-/*** 送出（未串後端） ***/
-document.getElementById("submitBtn").onclick=()=>{
-  alert("📨 預約已送出（目前為示範，可串接後端）");
+document.getElementById("submitBtn").onclick = async () => {
+
+  const payload = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    email: document.getElementById("email").value,
+    room: document.getElementById("roomTitle").innerText,
+    checkin: document.getElementById("checkin").innerText,
+    checkout: document.getElementById("checkout").innerText,
+    nights: document.getElementById("nights").innerText,
+    adult: document.getElementById("adult").value,
+    child: document.getElementById("child").value,
+    pet: document.getElementById("pet").value,
+    note: document.getElementById("note").value
+  };
+
+  const res = await fetch("https://script.google.com/macros/s/AKfycbwXIBwEyMnaZsNd1ODZx6Dh320bnJ-zWr4u27ZCvyQCgrTy0BG22FgG8Djo1jHQIJ8i/exec", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(payload)
+  }).then(r=>r.json());
+
+  if(res.success){
+    location.href="result.html?orderId="+res.orderId;
+  }else{
+    alert("❗ 送出失敗："+res.error);
+  }
 };
+
 </script>
 
 </body>
